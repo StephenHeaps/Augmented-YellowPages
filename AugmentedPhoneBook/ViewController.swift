@@ -104,9 +104,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
             if let currentBusiness = currentBusiness {
                 if let businessURL = currentBusiness.url {
                     let safariViewController = SFSafariViewController(url: businessURL)
-                    self.present(safariViewController, animated: true, completion: {
-                        
-                    })
+                    self.present(safariViewController, animated: true, completion: nil)
                 }
             }
         } else if button == refreshLocationsButton {
@@ -210,16 +208,18 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
         let config = URLSessionConfiguration.default // Session Configuration
         let session = URLSession(configuration: config) // Load configuration into Session
         
-        let task = session.dataTask(with: url, completionHandler: {
-            (data, response, error) in
+        let task = session.dataTask(with: url, completionHandler: { [weak self] (data, response, error) in
             if error != nil {
                 print(error!.localizedDescription)
             } else {
+                guard let data = data else {
+                    print("error: Data is nil")
+                    return }
                 do {
-                    if let json = try JSONSerialization.jsonObject(with: data!, options: .allowFragments) as? [String: Any] {
+                    if let json = try JSONSerialization.jsonObject(with: data, options: .allowFragments) as? [String: Any] {
                         if let summary = json["summary"] as? [String:Any] {
                             if let structSummary = Summary(json: summary) {
-                                self.summary = structSummary
+                                self?.summary = structSummary
                             } else {
                                 print("error with summary")
                             }
@@ -228,16 +228,16 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
                         if let listings = json["listings"] as? [[String:Any]] {
                             for listing in listings {
                                 if let business = Business(json: listing) {
-                                    self.businesses.append(business)
+                                    self?.businesses.append(business)
                                 } else {
                                     print("error with listing")
                                 }
                             }
                         }
                     }
-                    self.completedApiRequest(true)
+                    self?.completedApiRequest(true)
                 } catch {
-                    self.completedApiRequest(false)
+                    self?.completedApiRequest(false)
                     print("error in JSONSerialization")
                 }
             }
@@ -311,9 +311,6 @@ extension ViewController: ARSessionDelegate {
         case .limited(.excessiveMotion):
             cameraLabel.text = "camera: limited, excessive motion"
             cameraLabel.textColor = .yellow
-        case .limited(.none):
-            cameraLabel.text = "camera: limited, no reason"
-            cameraLabel.textColor = .yellow
         case .limited(.initializing):
             cameraLabel.text = "camera: limited, initializing"
             cameraLabel.textColor = .yellow
@@ -332,6 +329,9 @@ extension ViewController: ARSessionDelegate {
         case .notAvailable:
             cameraLabel.text = "camera: not available"
             cameraLabel.textColor = .red
+        case .limited(.relocalizing):
+            cameraLabel.text = "camera: limited, no reason"
+            cameraLabel.textColor = .yellow
         }
 
         if refreshLocationsButton.isHidden {

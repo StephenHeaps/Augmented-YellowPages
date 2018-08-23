@@ -20,6 +20,7 @@ struct Summary {
     let whereString: String
     let location: (latitude: Double, longitude: Double)
 }
+
 extension Summary {
     init?(json: [String: Any]) {
         guard let province = json["Prov"] as? String,
@@ -58,6 +59,7 @@ struct Category {
     let id: String
     let value: String
 }
+
 extension Category {
     init?(json: [String: Any]) {
         guard let id = json["id"] as? String,
@@ -69,12 +71,14 @@ extension Category {
         self.value = value
     }
 }
+
 struct Address {
     let city: String
     let postalCode: String
     let province: String
     let street: String
 }
+
 extension Address {
     init?(json: [String: Any]) {
         guard let city = json["city"] as? String,
@@ -101,6 +105,7 @@ public struct Business {
     let name: String
     let phoneNumber: Int
 }
+
 extension Business {
     init?(json: [String: Any]) {
         guard let categories = json["Categories"] as? [[String: Any]],
